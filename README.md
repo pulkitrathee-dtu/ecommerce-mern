@@ -1,7 +1,7 @@
 # DSA E-Commerce Demo (MERN)
 
 A small full-stack e-commerce demo built to showcase two specific DSA optimizations
-in a real backend.
+in the backend.
 
 ## What it demonstrates
 
