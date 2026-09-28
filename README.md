@@ -1,94 +1,31 @@
-# DSA E-Commerce Demo (MERN)
+# E-Commerce Demo (MERN)
 
-A small full-stack e-commerce demo built to showcase two specific DSA optimizations
-in the backend.
+A small full-stack shop I built to practice using data structures in a real backend.
 
-## What it demonstrates
+## What it does
+- Browse products and filter them by price range
+- Add items to a cart, change quantities, remove items
 
-### 1. Binary search for price filtering — O(log N)
-On server start, all products are loaded from MongoDB, sorted by price, and kept
-in memory as a plain array (`backend/services/productCache.js`). The filter endpoint
-(`GET /api/products/filter?min=&max=`) does **not** scan the array with `.filter()`.
-Instead, `backend/utils/binarySearch.js` implements:
-- `lowerBound(arr, target)` — first index with `price >= target`
-- `upperBound(arr, target)` — last index with `price <= target`
+## The two DSA parts
 
-The matching range is found in O(log N), then sliced out in O(K) (K = number of
-matches, unavoidable since they must be returned).
+**Price filter: binary search.** When the server starts, products are loaded from
+MongoDB into an array sorted by price. The filter endpoint uses binary search
+(`backend/utils/binarySearch.js`) to find where the price range starts and ends,
+instead of checking every product. Finding the range is O(log N).
 
-### 2. Cart management with a JavaScript Map — O(1)
-`backend/services/cartStore.js` stores the cart as `Map<productId, quantity>`.
-Add, update, and remove all use `Map.get/set/delete`, which are O(1) average case —
-versus O(N) if the cart were an array searched by `productId` on every operation.
+**Cart: Map.** The cart is a JavaScript Map of productId to quantity
+(`backend/services/cartStore.js`), so add, update and remove are O(1) on average.
 
-The demo uses a single shared cart (no login) to keep things simple. The README
-below and code comments note how you'd extend this to a `Map` of per-user carts.
+## Tech
+React, Node.js, Express, MongoDB (Mongoose)
 
-## Project structure
+## Run locally
+1. Start MongoDB (local or Atlas) and copy `backend/.env.example` to `backend/.env`
+2. Backend: `cd backend`, `npm install`, `npm run seed`, `npm start`
+3. Frontend (new terminal): `cd frontend`, `npm install`, `npm start`
+4. Open http://localhost:3000
 
-```
-mern-ecommerce/
-├── backend/
-│   ├── data/seed.js          # populates MongoDB with sample products
-│   ├── models/Product.js     # Mongoose schema
-│   ├── services/
-│   │   ├── productCache.js   # in-memory sorted array + binary search wiring
-│   │   └── cartStore.js      # Map-based cart
-│   ├── utils/binarySearch.js # lowerBound / upperBound / filterByPriceRange
-│   ├── routes/products.js
-│   ├── routes/cart.js
-│   └── server.js
-└── frontend/
-    └── src/
-        ├── App.js            # product grid, filter bar, cart panel
-        ├── api.js            # fetch calls to the backend
-        └── App.css           # plain CSS with variables, no framework
-```
-
-## Running it locally
-
-### Prerequisites
-- Node.js (v18+ recommended)
-- MongoDB running locally, or a free MongoDB Atlas connection string
-
-### 1. Backend
-```bash
-cd backend
-npm install
-cp .env.example .env        # edit MONGO_URI if you're using Atlas
-npm run seed                # inserts 25 sample products
-npm start                   # starts the API on http://localhost:5000
-```
-
-### 2. Frontend
-In a second terminal:
-```bash
-cd frontend
-npm install
-npm start                   # opens http://localhost:3000
-```
-
-The frontend expects the backend at `http://localhost:5000` (see `frontend/src/api.js`).
-
-## API endpoints
-
-| Method | Endpoint                          | Purpose                              |
-|--------|------------------------------------|---------------------------------------|
-| GET    | `/api/products`                    | All products, sorted by price         |
-| GET    | `/api/products/filter?min=&max=`   | Binary-search price filter            |
-| GET    | `/api/cart`                        | Current cart contents                 |
-| POST   | `/api/cart/add`                    | `{ productId, quantity }`             |
-| PUT    | `/api/cart/update`                 | `{ productId, quantity }`             |
-| DELETE | `/api/cart/:productId`             | Remove item from cart                 |
-
-## Known simplifications (worth naming if asked)
-
-- No authentication — one shared cart for the whole app.
-- Product cache is loaded once at server start; adding a product via the DB
-  directly wouldn't appear until restart (no cache invalidation logic yet).
-- No automated tests.
-- No pagination on the product list.
-
-These are reasonable things to mention proactively in an interview as "what I'd
-add with more time" — it shows awareness of the gap between a demo and a
-production system.
+## Limitations
+- One shared cart, no login
+- Products are cached at startup, so restart the server after changing them in the database
+- No automated tests yet
